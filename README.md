@@ -16,8 +16,10 @@ Docker CLI, no remote-dev backend involved.
   (`dockerComposeFile` + `service`) setups.
 - Runs `postCreateCommand` automatically after (re)creating the container.
 - **Embedded shell** in the tool window (`docker exec -i`) to run commands inside the container.
-- **Open Terminal in Dev Container**: opens a real system terminal (`gnome-terminal`/`konsole`/
-  `xterm`/...) attached via `docker exec -it`, for full TTY fidelity (colors, `vim`, `htop`, ...).
+- **Open Terminal in Dev Container**: opens a real system terminal attached via `docker exec -it`,
+  for full TTY fidelity (colors, `vim`, `htop`, ...). Tries `gnome-terminal`/`konsole`/
+  `xfce4-terminal`/`xterm` on Linux, Windows Terminal (`wt.exe`, falling back to `cmd.exe`) on
+  Windows.
 - **Run / Debug in Dev Container**: runs a configured main class inside the container via the
   `exec-maven-plugin`, and for Debug attaches IntelliJ's built-in "Remote JVM Debug" to a JDWP
   agent started in the container (breakpoints, stepping, etc. all work normally).
@@ -59,6 +61,17 @@ to a new major version may require re-resolving which jar each dependency lives 
 updating the path. A quick way to find a class: build an index once with
 `find <idea.home> -name "*.jar" | while read j; do unzip -l "$j" | awk -v j="$j" '{print j"\t"$4}'; done > /tmp/idea_jar_index.txt`
 then `grep "Some/Class.class" /tmp/idea_jar_index.txt`.
+
+## Platform support
+
+Runs on Linux, macOS and Windows hosts (with Docker Desktop) - the devcontainer itself is always
+a Linux container regardless of host OS, so `bash`/`sh` inside it is unaffected by the host. Two
+host-OS-specific points:
+
+- **Volume mounts**: Docker Desktop on Windows auto-detects and translates native Windows paths
+  (e.g. `C:\Users\name\project`) passed to `-v`, so no path conversion is needed on our side.
+- **Open Terminal in Dev Container**: platform-appropriate terminal emulators are tried (see
+  Features above); if none is found, an error notification says so.
 
 ## Installing
 

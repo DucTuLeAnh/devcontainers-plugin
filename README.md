@@ -25,22 +25,40 @@ Docker CLI, no remote-dev backend involved.
 ## Requirements
 
 - Docker (and `docker compose` for Compose-based devcontainers) available on `PATH`.
-- A local IntelliJ IDEA Community Edition installation, used at build time to compile against
-  the IntelliJ Platform API.
+- A local IntelliJ IDEA installation (Community or Ultimate - both ship the same platform/Java
+  modules this plugin needs), used at build time to compile against the IntelliJ Platform API.
+  No particular `JAVA_HOME`/system JDK is required - the build compiles and runs tests with the
+  IDE's own bundled JetBrains Runtime (see below).
 
 ## Building
 
 This plugin is built with plain Maven - no Gradle, no IntelliJ Platform Gradle Plugin. Instead,
 `pom.xml` declares `system`-scope dependencies pointing directly at jars inside a local IntelliJ
-IDEA Community installation.
+IDEA installation.
 
-1. Set `<idea.home>` in `pom.xml` to your IntelliJ IDEA Community installation directory (the
-   folder containing `bin/idea.sh` and `lib/`).
-2. Build:
+1. Set `<idea.home>` in `pom.xml` to your IntelliJ IDEA installation directory (the folder
+   containing `bin/idea.sh` and `lib/`).
+2. `<maven.compiler.release>` in `pom.xml` must match (or exceed) the classfile version of that
+   IDE's jars - in practice, the Java version of its bundled JetBrains Runtime (check
+   `<idea.home>/jbr/release`). javac refuses to read newer classfiles under an older `--release`,
+   so a mismatch here fails the build outright. The plugin bytecode produced will only run on
+   IDEs whose JBR is at least this version - `since-build` in `plugin.xml` is set accordingly.
+3. Build:
    ```
    ./mvnw clean package
    ```
-   This produces `target/devcontainers-plugin-1.0-SNAPSHOT.zip`.
+   This produces `target/devcontainers-plugin-1.0-SNAPSHOT.zip`. `maven-compiler-plugin` and
+   `maven-surefire-plugin` are configured to compile and run tests with
+   `${idea.home}/jbr/bin/javac`/`java` rather than whatever `JAVA_HOME` is active, so this works
+   regardless of the host's default JDK.
+
+**Note on IntelliJ's internal jar layout:** it can change between major versions - it did
+between 2025.2 (a handful of monolithic jars like `app-client.jar`) and 2026.2 (many
+fine-grained `intellij.platform.*.jar`/`intellij.java.*.jar` modules). Upgrading `<idea.home>`
+to a new major version may require re-resolving which jar each dependency lives in, not just
+updating the path. A quick way to find a class: build an index once with
+`find <idea.home> -name "*.jar" | while read j; do unzip -l "$j" | awk -v j="$j" '{print j"\t"$4}'; done > /tmp/idea_jar_index.txt`
+then `grep "Some/Class.class" /tmp/idea_jar_index.txt`.
 
 ## Installing
 

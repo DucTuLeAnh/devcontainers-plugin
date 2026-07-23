@@ -10,14 +10,23 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.release>21</maven.compiler.release>
+        <!-- Must match (or exceed) the classfile version of the IDE jars on the compile
+             classpath below - javac's "release" flag rejects newer classfiles outright. The
+             bundled JBR moved from 21 (2025.2, build 252) to 25 (2026.2, build 262), so plugin
+             bytecode compiled here now requires JBR 25+ to run; see the since-build note in
+             plugin.xml. -->
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Path to a local IntelliJ IDEA Community installation. Its bundled jars are used
-             as compile-time-only (system scope) dependencies so the plugin can be built with
-             plain Maven, without the IntelliJ Platform Gradle Plugin. Update this if the IDE
-             is reinstalled to a different location or version. -->
-        <idea.home>/home/ductu/idea-IC-252.27397.103</idea.home>
+        <!-- Path to a local IntelliJ IDEA installation. Its bundled jars are used as
+             compile-time-only (system scope) dependencies so the plugin can be built with plain
+             Maven, without the IntelliJ Platform Gradle Plugin. Update this if the IDE is
+             reinstalled to a different location or version - note that IntelliJ's internal jar
+             layout can change between major versions (it did between 2025.2 and 2026.2, moving
+             from a few monolithic jars to many fine-grained "intellij.platform.*.jar" modules),
+             so the artifactIds/systemPaths below may need to be re-resolved too, not just this
+             path. -->
+        <idea.home>/home/ductu/idea-IU-262.8665.258</idea.home>
 
         <junit.version>5.10.2</junit.version>
     </properties>
@@ -25,20 +34,14 @@
     <dependencies>
         <!-- IntelliJ Platform API, compiled against the locally installed IDE build.
              Not bundled into the plugin jar (scope=system) - at runtime these classes are
-             provided by the IDE process the plugin runs in. -->
+             provided by the IDE process the plugin runs in. Jar names verified via `unzip -l`
+             against build 262.8665.258 (2026.2). -->
         <dependency>
             <groupId>com.jetbrains.intellij</groupId>
-            <artifactId>app-client</artifactId>
+            <artifactId>annotations</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>${idea.home}/lib/app-client.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>com.jetbrains.intellij</groupId>
-            <artifactId>app</artifactId>
-            <version>local</version>
-            <scope>system</scope>
-            <systemPath>${idea.home}/lib/app.jar</systemPath>
+            <systemPath>${idea.home}/lib/annotations.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.jetbrains.intellij</groupId>
@@ -47,6 +50,8 @@
             <scope>system</scope>
             <systemPath>${idea.home}/lib/util.jar</systemPath>
         </dependency>
+        <!-- Disposable, UserDataHolder(Base), Computable, Factory, Key, Condition, SmartFMap -
+             transitively required by classes in the platform-* jars below. -->
         <dependency>
             <groupId>com.jetbrains.intellij</groupId>
             <artifactId>util-8</artifactId>
@@ -54,21 +59,112 @@
             <scope>system</scope>
             <systemPath>${idea.home}/lib/util-8.jar</systemPath>
         </dependency>
+        <!-- ThrowableComputable - transitively required by ProgressManager. -->
         <dependency>
             <groupId>com.jetbrains.intellij</groupId>
-            <artifactId>annotations</artifactId>
+            <artifactId>util-rt</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>${idea.home}/lib/annotations.jar</systemPath>
+            <systemPath>${idea.home}/lib/util_rt.jar</systemPath>
         </dependency>
-        <!-- Bundled Java plugin - RemoteConfiguration/RemoteConfigurationType for attaching a
-             Remote JVM Debug session to the app running inside the devcontainer. -->
+        <!-- DataKey, BusyObject - transitively required by AnActionEvent/Presentation. -->
         <dependency>
             <groupId>com.jetbrains.intellij</groupId>
-            <artifactId>java-impl</artifactId>
+            <artifactId>platform-core-ui</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>${idea.home}/plugins/java/lib/java-impl.jar</systemPath>
+            <systemPath>${idea.home}/lib/intellij.platform.core.ui.jar</systemPath>
+        </dependency>
+        <!-- EventPair - transitively required by ApplicationConfiguration. -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-statistics</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.statistics.jar</systemPath>
+        </dependency>
+        <!-- Project, ProgressManager/Task/ProgressIndicator, @Service, PropertiesComponent -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.core.jar</systemPath>
+        </dependency>
+        <!-- AnAction, AnActionEvent, ActionUpdateThread -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-editor-ui</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.editor.ui.jar</systemPath>
+        </dependency>
+        <!-- ToolWindowFactory, ToolWindowManager -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-ide</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.ide.jar</systemPath>
+        </dependency>
+        <!-- NotificationGroupManager, NotificationType, ContentFactory, Content, ToolWindow,
+             ConsoleViewContentType -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-ide-core</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.ide.core.jar</systemPath>
+        </dependency>
+        <!-- ConsoleView, TextConsoleBuilderFactory, RunManager, RunnerAndConfigurationSettings -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-execution</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.execution.jar</systemPath>
+        </dependency>
+        <!-- ProgramRunnerUtil -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-execution-impl</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.execution.impl.jar</systemPath>
+        </dependency>
+        <!-- DefaultDebugExecutor -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-debugger</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.platform.debugger.jar</systemPath>
+        </dependency>
+        <!-- Gson, used to parse devcontainer.json -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>gson</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/intellij.libraries.gson.jar</systemPath>
+        </dependency>
+        <!-- Bundled Java plugin - RemoteConfiguration/RemoteConfigurationType/
+             ApplicationConfiguration for attaching a Remote JVM Debug session to the app
+             running inside the devcontainer. -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>java-execution-impl</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/plugins/java/lib/modules/intellij.java.execution.impl.jar</systemPath>
+        </dependency>
+        <!-- ConfigurationWithAlternativeJre - transitively required by ApplicationConfiguration. -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>java-execution</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/plugins/java/lib/modules/intellij.java.execution.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -82,15 +178,28 @@
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
+            <!-- Compiles with the IDE's own bundled JetBrains Runtime rather than whatever JDK
+                 launched Maven (JAVA_HOME) - that JBR is guaranteed to support the release
+                 version required above, so the build doesn't depend on the host's default JDK. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
+                <configuration>
+                    <fork>true</fork>
+                    <executable>${idea.home}/jbr/bin/javac</executable>
+                </configuration>
             </plugin>
+            <!-- Tests are plain JUnit with no IntelliJ Platform dependency, but they're compiled
+                 with the release version above, so they must also be run on a JVM that supports
+                 it - again, use the IDE's own JBR instead of relying on JAVA_HOME. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <jvm>${idea.home}/jbr/bin/java</jvm>
+                </configuration>
             </plugin>
             <!-- Wraps the plugin jar into the layout IntelliJ expects for
                  "Install Plugin from Disk...": <pluginId>/lib/<jar>.zip -->

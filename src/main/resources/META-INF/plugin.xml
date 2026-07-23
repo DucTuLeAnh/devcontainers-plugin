@@ -15,7 +15,11 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
 
-    <idea-version since-build="242" until-build="299.*"/>
+    <!-- Compiled with maven.compiler.release=25 to match the jars of the currently installed
+         IDE (build 262.8665.258 / 2026.2, bundled JBR 25) - the resulting bytecode cannot run
+         on older IDEs bundling JBR < 25 (e.g. the previous 2025.2/JBR21 build), hence since-build
+         is pinned to 262 rather than the previous broader "242". -->
+    <idea-version since-build="262" until-build="299.*"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Dev Container"

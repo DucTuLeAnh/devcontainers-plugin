@@ -192,7 +192,10 @@ public final class DockerCommandBuilder {
     }
 
     private static List<String> execMavenGoalArgs(String mainClass) {
-        return List.of("mvn", "-q", EXEC_MAVEN_GOAL, "-Dexec.mainClass=" + mainClass, "-Dexec.classpathScope=compile");
+        // "compile" runs first because a directly-invoked plugin goal (exec:java) does not
+        // trigger the build lifecycle on its own - without it, exec:java would keep running
+        // whatever stale classes already happen to be in target/classes.
+        return List.of("mvn", "-q", "compile", EXEC_MAVEN_GOAL, "-Dexec.mainClass=" + mainClass, "-Dexec.classpathScope=compile");
     }
 
     /** Converts postCreateCommand (String or List&lt;String&gt;) into an argv suitable for {@link #execArgs}. */

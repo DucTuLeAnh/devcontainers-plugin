@@ -98,9 +98,17 @@ class DockerCommandBuilderTest {
     void execAppArgsRunsMainClassViaExecMavenPluginWithoutDebugAgent() {
         List<String> args = DockerCommandBuilder.execAppArgs("abc123", "Main", null);
 
-        assertEquals(List.of("exec", "-i", "abc123", "mvn", "-q",
+        assertEquals(List.of("exec", "-i", "abc123", "mvn", "-q", "compile",
                 "org.codehaus.mojo:exec-maven-plugin:3.1.0:java",
                 "-Dexec.mainClass=Main", "-Dexec.classpathScope=compile"), args);
+    }
+
+    @Test
+    void execAppArgsAlwaysCompilesBeforeRunningSoCodeChangesAreReflected() {
+        List<String> args = DockerCommandBuilder.execAppArgs("abc123", "Main", null);
+
+        assertTrue(args.contains("compile"));
+        assertTrue(args.indexOf("compile") < args.indexOf("org.codehaus.mojo:exec-maven-plugin:3.1.0:java"));
     }
 
     @Test

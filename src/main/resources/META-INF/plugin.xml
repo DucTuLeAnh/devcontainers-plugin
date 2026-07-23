@@ -1,0 +1,53 @@
+<idea-plugin>
+    <id>org.example.devcontainer</id>
+    <name>Simple Dev Containers</name>
+    <vendor>local</vendor>
+
+    <description><![CDATA[
+        Minimal Dev Containers support for IntelliJ IDEA Community Edition.
+        Starts/stops/rebuilds the devcontainer defined in .devcontainer/devcontainer.json
+        via the Docker CLI and gives shell access to the running container. Not a
+        replacement for JetBrains Gateway based remote development (Ultimate-only) -
+        the project itself still runs locally, this plugin only manages the container
+        lifecycle and lets you run commands inside it.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <idea-version since-build="242" until-build="299.*"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Dev Container"
+                    anchor="bottom"
+                    factoryClass="org.example.devcontainer.ui.DevContainerToolWindowFactory"/>
+        <notificationGroup id="Dev Container" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <group id="org.example.devcontainer.ActionGroup" text="Dev Container" popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="org.example.devcontainer.Start"
+                    class="org.example.devcontainer.actions.StartDevContainerAction"
+                    text="Start Dev Container" description="Builds/starts the devcontainer"/>
+            <action id="org.example.devcontainer.Stop"
+                    class="org.example.devcontainer.actions.StopDevContainerAction"
+                    text="Stop Dev Container" description="Stops the devcontainer"/>
+            <action id="org.example.devcontainer.Rebuild"
+                    class="org.example.devcontainer.actions.RebuildDevContainerAction"
+                    text="Rebuild Dev Container" description="Rebuilds the devcontainer from scratch"/>
+            <action id="org.example.devcontainer.OpenExternalTerminal"
+                    class="org.example.devcontainer.actions.OpenExternalTerminalAction"
+                    text="Open Terminal in Dev Container"
+                    description="Opens a system terminal attached to the devcontainer"/>
+            <action id="org.example.devcontainer.RunApp"
+                    class="org.example.devcontainer.actions.RunInDevContainerAction"
+                    text="Run in Dev Container"
+                    description="Runs the configured main class inside the devcontainer"/>
+            <action id="org.example.devcontainer.DebugApp"
+                    class="org.example.devcontainer.actions.DebugInDevContainerAction"
+                    text="Debug in Dev Container"
+                    description="Runs the configured main class inside the devcontainer and attaches the debugger"/>
+        </group>
+    </actions>
+</idea-plugin>

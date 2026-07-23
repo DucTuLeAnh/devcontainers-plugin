@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>devcontainers-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Path to a local IntelliJ IDEA Community installation. Its bundled jars are used
+             as compile-time-only (system scope) dependencies so the plugin can be built with
+             plain Maven, without the IntelliJ Platform Gradle Plugin. Update this if the IDE
+             is reinstalled to a different location or version. -->
+        <idea.home>/home/ductu/idea-IC-252.27397.103</idea.home>
+
+        <junit.version>5.10.2</junit.version>
+    </properties>
+
+    <dependencies>
+        <!-- IntelliJ Platform API, compiled against the locally installed IDE build.
+             Not bundled into the plugin jar (scope=system) - at runtime these classes are
+             provided by the IDE process the plugin runs in. -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>app-client</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/app-client.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>app</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/app.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>util</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>util-8</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util-8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/annotations.jar</systemPath>
+        </dependency>
+        <!-- Bundled Java plugin - RemoteConfiguration/RemoteConfigurationType for attaching a
+             Remote JVM Debug session to the app running inside the devcontainer. -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>java-impl</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/plugins/java/lib/java-impl.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+            <!-- Wraps the plugin jar into the layout IntelliJ expects for
+                 "Install Plugin from Disk...": <pluginId>/lib/<jar>.zip -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>src/assembly/dist.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>plugin-zip</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
